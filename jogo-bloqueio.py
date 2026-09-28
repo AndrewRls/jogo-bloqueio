@@ -270,4 +270,132 @@ def colocarBarreira(tabuleiro: list, jogadores: dict, jogador: str):
     jogadores[jogador]["barreiras"] -= 1
     print("\nBarreira colocada com sucesso!")
     print(f"Barreiras restantes: {jogadores[jogador]["barreiras"]}")
-    return True
+    return True 
+
+def existeCaminho(tabuleiro: list, inicio_linha: int, inicio_coluna: int, jogador: str):
+    '''
+    Verifica se um caminho é válido ou inválido.
+    '''
+    tamanho = len(tabuleiro)
+
+    # Lista de posições que ainda precisam ser verificadas
+    fila = [(inicio_linha, inicio_coluna)]
+
+    # Guarda as posições que já foram verificadas
+    visitados = []
+
+    while len(fila) > 0:
+
+        linha, coluna = fila.pop(0)
+
+        # Evita verificar a mesma posição novamente
+        if (linha, coluna) in visitados:
+            continue
+
+        visitados.append((linha, coluna))
+
+        # Verifica se o jogador chegou ao objetivo
+        if jogador == "A" and coluna == tamanho - 1:
+            return True
+
+        if jogador == "B" and coluna == 0:
+            return True
+
+        # Possíveis movimentos: cima, baixo, esquerda e direita
+        movimentos = [
+            (-1, 0),  # cima
+            (1, 0),   # baixo
+            (0, -1),  # esquerda
+            (0, 1)    # direita
+        ]
+
+        for movimento in movimentos:
+
+            nova_linha = linha + movimento[0]
+            nova_coluna = coluna + movimento[1]
+
+            # Verifica se está dentro do tabuleiro
+            if (nova_linha >= 0 and nova_linha < tamanho and
+                    nova_coluna >= 0 and nova_coluna < tamanho):
+
+                # Pode passar somente por casas vazias ou pela posição do jogador
+                if (tabuleiro[nova_linha][nova_coluna] == "." or
+                        tabuleiro[nova_linha][nova_coluna] == jogador):
+
+                    if (nova_linha, nova_coluna) not in visitados:
+                        fila.append((nova_linha, nova_coluna))
+
+    # Se todas as possibilidades foram verificadas
+    # e o objetivo não foi encontrado
+    return False
+
+
+def main():
+    '''
+    Função principal, onde ocorre a chamada de todas as outras funções.
+    '''
+    tamanho = 7
+
+    tabuleiro = criarMatriz(tamanho)
+    jogadores = posicionarJogadores(tabuleiro)
+
+    jogador_atual = "A"
+    jogo_ativo = True
+
+    while jogo_ativo:
+        exibirTabuleiro(tabuleiro)
+
+        print(f"\nVez do jogador {jogador_atual}")
+        print("1 - Mover peão")
+        print("2 - Colocar barreira")
+        print("3 - Sair")
+
+        try:
+            opcao = int(input("Escolha uma opção: "))
+
+        except ValueError:
+            print("Digite apenas números!")
+            continue
+
+        if opcao == 1:
+            direcao = escolherDirecao()
+
+            movimentou = movimentarJogador(
+                tabuleiro,
+                jogadores,
+                jogador_atual,
+                direcao
+            )
+
+            if movimentou:
+                if verificarVitoria(
+                    jogadores,
+                    jogador_atual,
+                    tamanho
+                ):
+                    exibirTabuleiro(tabuleiro)
+                    print(f"\nJogador {jogador_atual} venceu!")
+                    jogo_ativo = False
+                else:
+                    if jogador_atual == "A":
+                        jogador_atual = "B"
+                    else:
+                        jogador_atual = "A"
+
+        elif opcao == 2:
+            colocou_barreira = colocarBarreira(tabuleiro, jogadores, jogador_atual)
+            if colocou_barreira:
+                if jogador_atual == "A":
+                    jogador_atual = "B"
+                else:
+                    jogador_atual = "A"
+
+        elif opcao == 3:
+            print("Jogo encerrado.")
+            jogo_ativo = False
+
+        else:
+            print("Opção inválida!")
+
+#chamada do main()
+main()
